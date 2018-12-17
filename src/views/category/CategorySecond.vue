@@ -24,19 +24,19 @@
           <el-table-column
             prop="id"
             label="品牌编号"
-            width="180px"
+            width="200px"
           >
           </el-table-column>
           <el-table-column
             prop="brandName"
             label="品牌名称"
-            width="180px"
+            width="200px"
           >
           </el-table-column>
           <el-table-column label="品牌logo">
             <template slot-scope="scope">
               <img
-                :src="'http://localhost:3000'+ scope.row.brandLogo "
+                :src="'http://127.0.0.1:3000'+ scope.row.brandLogo "
                 alt=""
                 style="width:80px;height:80px"
               >
@@ -45,7 +45,7 @@
           <el-table-column
             prop="categoryName"
             label="所属分类"
-            width="180px"
+            width="200px"
           >
           </el-table-column>
         </el-table>
@@ -58,30 +58,36 @@
         <el-form :model="secondfrom">
           <el-form-item label="请选择分类">
             <el-select
-              v-model='secondfrom'
               placeholder="请选择品牌"
+              v-model="secondfrom.categoryId"
+            @change='getvalue'
             >
               <el-option
-                v-for="item in productlist"
-                :key="item.id"
-                value='item.brandId'
-              ></el-option>
+                v-for="item in firstList"
+                :key="item.brandId"
+                :value='item'
+                :label="item.categoryName"
+              >
+              </el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
             <el-input
-              v-model="secondfrom.size"
+              v-model="secondfrom.brandName"
               auto-complete="off"
               placeholder='请输入品牌名称'
             ></el-input>
           </el-form-item>
           <el-upload
             class="upload-demo"
-            action="https://jsonplaceholder.typicode.com/posts/"
+            action="http://127.0.0.1:3000/category/addSecondCategoryPic"
+            :with-credentials= "true"
+            name="pic1"
             :on-preview="handlePreview"
             :on-remove="handleRemove"
-            :file-list="fileList2"
+            :file-list="fileList"
             list-type="picture"
+            :on-success='handlSuccess'
           >
             <el-button
               size="small"
@@ -100,7 +106,7 @@
           <el-button @click="categorySecond = false">取 消</el-button>
           <el-button
             type="primary"
-            @click="categorySecond = false"
+            @click="addSecond"
           >确 定</el-button>
         </div>
       </el-dialog>
@@ -115,47 +121,111 @@
         :total=total
       >
       </el-pagination>
+      <!-- 图片预览 -->
+<el-dialog title="图片预览" :visible.sync="picdialogTableVisible">
+  <img :src="userpic" alt="">
+</el-dialog>
     </el-card>
   </div>
 </template>
 <script>
-import { SecondList } from '@/api'
+import { SecondList, FristList, addCategorySecond } from '@/api'
 export default {
   data () {
     return {
       secondlist: [],
+      firstList: [],
       formLabelWidth: '120px',
       categorySecond: false,
       page: 1,
       pagesize: 10,
       total: 10,
-      secondfrom: {},
-      fileList2: []
+      // secondfrom: {
+      //   proname: '',
+      //   oldprice: '',
+      //   price: '',
+      //   prodesc: '',
+      //   size: '',
+      //   statu: '',
+      //   num: '',
+      //   brandld: ''
+      // },
+      secondfrom: {
+        brandName: '',
+        categoryId: '',
+        brandLogo: [],
+        hot: ''
+      },
+      fileList: [],
+      picdialogTableVisible: false,
+      userpic: ''
     }
   },
   mounted () {
-    SecondList({ page: this.page, pageSize: this.pagesize }).then(res => {
-      console.log(res)
-      if (res.status === 200) {
-        this.secondlist = res.data.rows
-        this.page = res.data.page
-        this.pagesize = res.data.size
-        this.total = res.data.total
-      }
-    })
+    this.init()
   },
   methods: {
+    getvalue (value) {
+      // console.log(value.categoryName)
+      var plist = value.categoryName
+      // 将循环结构转换为JSON
+      var str = JSON.stringify(plist)
+      this.secondfrom.categoryId = str
+      // this.value.categoryName = this.secondfrom.categoryId
+    },
+    // 添加二级分类
+    addSecond () {
+      console.log(this.secondfrom)
+
+      addCategorySecond(this.secondfrom).then(res => {
+        console.log(res)
+        if (res.data.success === true) {
+          this.$message.success('添加分类成功')
+          this.categorySecond = false
+          this.init()
+        }
+      })
+    },
+    init () {
+      FristList({ page: this.page, pageSize: this.pagesize }).then(res => {
+      // console.log(res)
+        this.firstList = res.data.rows
+      })
+      SecondList({ page: this.page, pageSize: this.pagesize }).then(res => {
+        console.log(res.data.rows)
+        if (res.status === 200) {
+          this.secondlist = res.data.rows
+          this.page = res.data.page
+          this.pagesize = res.data.size
+          this.total = res.data.total
+        }
+      })
+    },
     handleSizeChange (val) {
-      console.log(`每页 ${val} 条`)
+      // console.log(`每页 ${val} 条`)
+      this.pagesize = val
+      this.init()
     },
     handleCurrentChange (val) {
-      console.log(`当前页: ${val}`)
+      // console.log(`当前页: ${val}`)
+      this.page = val
+      this.init()
     },
     handleRemove (file, fileList) {
       console.log(file, fileList)
     },
+    // 图片预览
     handlePreview (file) {
       console.log(file)
+      this.picdialogTableVisible = true
+      // this.userpic = 'http://localhost:3000' + file.name
+    },
+    handlSuccess (file, fileList) {
+      console.log(file, fileList)
+      this.userpic = 'http://127.0.0.1:3000' + file.picAddr
+      // this.secondfrom.brandLogo.push({'brandLogo': '/' + file.picAddr})
+      // 赋值给secondfrom.brandLogo
+      this.secondfrom.brandLogo = this.userpic
     }
   }
 }

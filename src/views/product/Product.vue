@@ -72,12 +72,17 @@
         :visible.sync="productDisplay"
       >
         <el-form :model="productFrom">
-          <el-form-item
-            label="请选择品牌"
-          >
-            <el-select :model='productFrom' placeholder="请选择品牌">
-              <el-option v-for="item in productFrom" :key="item.id"
-                value='item.brandId'
+          <el-form-item label="请选择品牌">
+            <el-select
+              v-model='productFrom.id'
+              placeholder="请选择品牌"
+              @change="getvalue"
+            >
+              <el-option
+                v-for="item in secondlist"
+                :key="item.id"
+                :value="item"
+                :label='item.brandName'
               ></el-option>
             </el-select>
           </el-form-item>
@@ -125,14 +130,14 @@
           </el-form-item>
           <el-upload
             class="upload-demo"
-            action="https://jsonplaceholder.typicode.com/posts/"
+            action="http://127.0.0.1:3000/product/addProductPic"
+            :with-credentials= "true"
+            name="pic1"
             :on-preview="handlePreview"
             :on-remove="handleRemove"
-            :before-remove="beforeRemove"
-            multiple
-            :limit="3"
-            :on-exceed="handleExceed"
             :file-list="fileList"
+            list-type="picture"
+            :on-success='handlSuccess'
           >
             <el-button
               size="small"
@@ -170,7 +175,7 @@
   </div>
 </template>
 <script>
-import { getProductList, addProduct } from '@/api'
+import { getProductList, SecondList } from '@/api'
 export default {
   data () {
     return {
@@ -182,33 +187,50 @@ export default {
       total: 1,
       fileList: [],
       productFrom: {
-        id: '',
-        proname: '',
-        oldprice: '',
+        proName: '',
+        oldPrice: '',
         price: '',
-        prodesc: '',
+        proDesc: '',
         size: '',
         statu: '',
         num: '',
-        brandld: ''
-      }
+        brandId: '',
+        pic: []
+      },
+      secondlist: []
     }
   },
   mounted () {
     this.init()
   },
   methods: {
+    // 获取选择器的值
+    getvalue (value) {
+      // console.log(value)
+      var id = value.id
+      // 将循环结构转换为JSON
+      var str = JSON.stringify(id)
+      this.productFrom.brandId = str
+    },
     // 添加产品
     addProduct () {
-      this.productDisplay = false
-      addProduct(this.productFrom).then(res => {
-        console.log(res)
-      })
+      console.log(this.productFrom)
+
+      // this.productDisplay = false
+      // addProduct(this.productFrom).then(res => {
+      //   console.log(res)
+      // })
     },
     // 初始化
     init () {
-      getProductList({ page: this.page, pageSize: this.pagesize }).then(res => {
+      SecondList({ page: this.page, pageSize: this.pagesize }).then(res => {
         console.log(res)
+
+        this.secondlist = res.data.rows
+      })
+
+      getProductList({ page: this.page, pageSize: this.pagesize }).then(res => {
+        // console.log(res)
 
         if (res.status === 200) {
           this.productlist = res.data.rows
@@ -237,8 +259,19 @@ export default {
     handlePreview (file) {
       console.log(file)
     },
+    handlSuccess (file, fileList) {
+      console.log(file, fileList)
+      this.userpic = 'http://127.0.0.1:3000' + file.picAddr
+      // this.secondfrom.brandLogo.push({'brandLogo': '/' + file.picAddr})
+      // 赋值给secondfrom.brandLogo
+      this.secondfrom.brandLogo = this.userpic
+    },
     handleExceed (files, fileList) {
-      this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`)
+      this.$message.warning(
+        `当前限制选择 3 个文件，本次选择了 ${
+          files.length
+        } 个文件，共选择了 ${files.length + fileList.length} 个文件`
+      )
     },
     beforeRemove (file, fileList) {
       return this.$confirm(`确定移除 ${file.name}？`)

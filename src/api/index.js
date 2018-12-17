@@ -1,6 +1,6 @@
 import axios from 'axios'
 // 配置基础路径
-axios.defaults.baseURL = 'http://localhost:3000'
+axios.defaults.baseURL = 'http://127.0.0.1:3000'
 // axios默认不会发送cookie值
 axios.defaults.withCredentials = true
 
@@ -71,6 +71,20 @@ export const addCategoryFrist = (pa) => {
 // 第二个分类数据
 export const SecondList = (pa) => {
   return axios.get('/category/querySecondCategoryPaging', {params: pa})
+    .then(res => {
+      return res
+    })
+}
+// 添加二级分类
+export const addCategorySecond = (pa) => {
+  return axios.post('/category/addSecondCategory', pa)
+    .then(res => {
+      return res
+    })
+}
+// 上传二级分类的图片
+export const UpdataSecondPic = () => {
+  return axios.post('/category/addSecondCategoryPic')
     .then(res => {
       return res
     })
