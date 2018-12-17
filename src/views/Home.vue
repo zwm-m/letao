@@ -68,10 +68,10 @@ export default {
   },
   methods: {
     handleOpen (key, keyPath) {
-      console.log(key, keyPath)
+      // console.log(key, keyPath)
     },
     handleClose (key, keyPath) {
-      console.log(key, keyPath)
+      // console.log(key, keyPath)
     }
   }
 }
@@ -120,6 +120,9 @@ export default {
           color: aqua;
         }
       }
+  }
+  aside{
+    overflow: hidden;
   }
 }
 </style>

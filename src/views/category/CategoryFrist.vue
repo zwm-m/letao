@@ -4,7 +4,7 @@
       <!-- 添加 -->
       <el-button
         type="success"
-        @click="categoryFrist=true"
+        @click="addbtn()"
       >添加分类</el-button>
       <!-- 表格 -->
       <template>
@@ -19,13 +19,13 @@
           >
           </el-table-column>
           <el-table-column
-            prop="username"
+            prop="id"
             label="分类的编号"
             width="400px"
           >
           </el-table-column>
           <el-table-column
-            prop="分类名称"
+            prop="categoryName"
             label="分类名称"
           >
           </el-table-column>
@@ -33,17 +33,18 @@
       </template>
       <!-- 添加分类模板 -->
       <el-dialog
-        title="收货地址"
+        title="添加分类"
         :visible.sync="categoryFrist"
       >
-        <el-form :model="fristlist">
+        <el-form :model="fristfrom">
           <el-form-item
-            label="活动名称"
+            label="分类名称"
             :label-width="formLabelWidth"
           >
             <el-input
-              v-model="fristlist.name"
+              v-model="fristfrom.categoryName"
               auto-complete="off"
+              placeholder='请输入分类名称'
             ></el-input>
           </el-form-item>
         </el-form>
@@ -54,7 +55,7 @@
           <el-button @click="categoryFrist = false">取 消</el-button>
           <el-button
             type="primary"
-            @click="categoryFrist = false"
+            @click="addCategoryFrist"
           >确 定</el-button>
         </div>
       </el-dialog>
@@ -72,20 +73,63 @@
   </div>
 </template>
 <script>
+import { FristList, addCategoryFrist } from '@/api'
 export default {
   data () {
     return {
       fristlist: [],
       categoryFrist: false,
-      formLabelWidth: '120px'
+      fristfrom: {
+        categoryName: ''
+      },
+      formLabelWidth: '120px',
+      page: 1,
+      pagesize: 10,
+      total: 10,
+      id: ''
     }
   },
+  mounted () {
+    this.init()
+  },
   methods: {
+    addbtn () {
+      this.categoryFrist = true
+      this.fristfrom.categoryName = ''
+    },
+    // 添加分类
+    addCategoryFrist () {
+      addCategoryFrist(this.fristfrom).then(res => {
+        // console.log(this.fristlist.categoryName)
+        if (res.data.success === true) {
+          this.$message.success('添加分类数据成功')
+          this.categoryFrist = false
+          this.init()
+        }
+      })
+    },
+    init () {
+      FristList({ page: this.page, pageSize: this.pagesize }).then(res => {
+        // console.log(res)
+
+        if (res.status === 200) {
+          this.fristlist = res.data.rows
+          this.page = res.data.page
+          this.pagesize = res.data.size
+          this.total = res.data.total
+          console.log(this.fristlist[0].categoryName)
+        }
+      })
+    },
     handleSizeChange (val) {
-      console.log(`每页 ${val} 条`)
+      // console.log(`每页 ${val} 条`)
+      this.pagesize = val
+      this.init()
     },
     handleCurrentChange (val) {
-      console.log(`当前页: ${val}`)
+      // console.log(`当前页: ${val}`)
+      this.page = val
+      this.init()
     }
   }
 }

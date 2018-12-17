@@ -40,16 +40,19 @@
         >
         </el-table-column>
         <el-table-column
-          prop="1"
+
           label="状态"
         >
+         <template slot-scope="scope">
+            <span>{{scope.row.isDelete | capitalize}}</span>
+        </template>
         </el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope">
             <el-button
               size="mini"
               type="danger"
-              @click="handleDelete(scope.$index, scope.row)"
+              @click="handleChange(scope.row)"
             >禁用</el-button>
           </template>
         </el-table-column>
@@ -69,7 +72,7 @@
   </div>
 </template>
 <script>
-import {getUser} from '@/api'
+import {getUser, ChangeUserState} from '@/api'
 export default {
   data () {
     return {
@@ -77,16 +80,39 @@ export default {
       pagesize: 10,
       serachkey: '',
       total: 1,
-      userlist: []
+      userlist: [],
+      id: '',
+      isdelete: ''
     }
   },
   mounted () {
     this.init()
   },
+  // 过滤器
+  filters: {
+    capitalize (isDelete) {
+      if (isDelete === 1) {
+        return '已启用'
+      } else {
+        return '已禁用'
+      }
+    }
+  },
   methods: {
+
+    // 用户的禁用与启用
+    handleChange (row) {
+      console.log(row)
+      this.id = row.id
+      this.isdelete = row.isDelete
+      ChangeUserState({ id: this.id, isDelete: this.isdelete }).then(res => {
+        console.log(res)
+      })
+    },
+    // 初始化
     init () {
       getUser({ page: this.page, pageSize: this.pagesize }).then(res => {
-        console.log(res.data.rows)
+        // console.log(res.data.rows)
         if (res.status === 200) {
           // this.total = res.data.rows.total
           this.userlist = res.data.rows
@@ -94,9 +120,7 @@ export default {
       })
     },
     searchUsers () {},
-    handleDelete (index, row) {
-      console.log(row)
-    },
+
     handleSizeChange (val) {
       console.log(`每页 ${val} 条`)
     },

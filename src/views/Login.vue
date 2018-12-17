@@ -43,6 +43,13 @@ export default {
             // console.log(res)
             // 判断是否登录成功
             if (res.data.success === true) {
+              // 将token值实现本地存储
+              // localStorage.setItem('lt-token', res.data)
+              // console.log(res.data)
+
+              // // 把token值储存到store
+              // this.$store.dispatch('setUserNameAction', res.data)
+              // 登录成功后给出提示
               this.$message({
                 message: '登陆成功',
                 type: 'success'
